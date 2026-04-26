@@ -38,7 +38,8 @@ cloud-design/
 │   ├── technical.md          # HTML/CSS/JS 技术规范与 CDN 资源
 │   ├── design-principles.md  # 设计原则、避免 AI 俗套、占位符哲学
 │   ├── output-formats.md     # PPTX / SVG / ZIP / 幻灯片等格式规范
-│   └── checklist.md          # 交付前三阶段自检清单
+│   ├── checklist.md          # 交付前三阶段自检清单
+│   └── image-generation.md   # 豆包生图外挂：API 规范、Bash 模板、Prompt 指南
 ├── references/
 │   └── advanced-patterns.md  # 代码模板库（设备框架、幻灯片引擎、动效时间轴）
 ├── themes/
@@ -179,7 +180,11 @@ Skill 会用 `Edit` 工具做外科手术式修改，不触动无关代码。
 - **9 段解析框架**：对品牌规格进行系统化拆解，Do's & Don'ts 和 Agent 指令作为硬约束执行
 - **三级查找逻辑**：本地缓存 → 在线抓取 → 手动创建，首次抓取后自动缓存
 
-### v1.2（计划中）
+### v1.2（已完成）
+
+- **豆包生图外挂**：集成火山引擎豆包绘图 API（`doubao-seedream-3-0-t2i`），Step 5 完整构建阶段自动识别 Hero 图、产品展示图等图片需求，询问用户是否生成；生成后下载到本地 `assets/images/`，直接在 HTML 中引用本地路径。未配置 API Key 时友好引导用户完成配置。
+
+### v1.3（计划中）
 
 - **多页面原型支持**：多个 HTML 文件 + 导航逻辑的 ZIP 原型包
 - **设计 Token 导出**：自动从交付物提取 CSS 变量，生成 `design-spec.md`
