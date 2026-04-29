@@ -60,7 +60,7 @@ export default function HomePage() {
     } catch { /* silent */ }
   }, [])
 
-  const { messages, streamingText, isLoading, sendMessage } = useStream({
+  const { messages, streamingText, isLoading, sendMessage, stop } = useStream({
     sessionId: () => sessionIdRef.current,
     projectId: () => projectIdRef.current,
     provider: () => providerRef.current,
@@ -153,6 +153,18 @@ export default function HomePage() {
     } catch { /* silent */ }
   }
 
+  async function renameProject(pid: string, name: string) {
+    try {
+      await fetch('/api/session', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: pid, sessionId, updates: { name } }),
+      })
+      setProjects(prev => prev.map(p => p.id === pid ? { ...p, name } : p))
+      if (pid === projectId) setProjectName(name)
+    } catch { /* silent */ }
+  }
+
   async function deleteProject(pid: string) {
     try {
       await fetch(`/api/session?projectId=${pid}&sessionId=${sessionIdRef.current}`, { method: 'DELETE' })
@@ -213,6 +225,7 @@ export default function HomePage() {
           input={inputText}
           setInput={setInputText}
           onSend={handleSend}
+          onStop={stop}
           streamingContent={isLoading ? streamingText : undefined}
         />
         <PreviewPanel
@@ -228,6 +241,7 @@ export default function HomePage() {
         currentProjectId={projectId}
         onSelect={selectProject}
         onDelete={deleteProject}
+        onRename={renameProject}
         onClose={() => setDrawerOpen(false)}
       />
     </div>

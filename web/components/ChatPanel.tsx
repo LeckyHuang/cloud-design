@@ -19,6 +19,7 @@ interface ChatPanelProps {
   input: string
   setInput: (v: string) => void
   onSend: (images: string[], files: FileAttachment[]) => void
+  onStop?: () => void
   streamingContent?: string
 }
 
@@ -53,6 +54,7 @@ export default function ChatPanel({
   input,
   setInput,
   onSend,
+  onStop,
   streamingContent,
 }: ChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -391,23 +393,43 @@ export default function ChatPanel({
                 {isGenerating ? '生成中…' : 'Enter 发送 · ⌘V 贴图'}
               </span>
             </div>
-            <button
-              onClick={handleSend}
-              disabled={!canSend}
-              style={{
-                width: '32px', height: '32px',
-                background: canSend ? 'var(--accent-grad)' : 'var(--surface-hi)',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: canSend ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.15s',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1v12M1 7l6-6 6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+            {isGenerating ? (
+              <button
+                onClick={onStop}
+                style={{
+                  width: '32px', height: '32px',
+                  background: 'var(--surface-hi)',
+                  border: '1px solid var(--border-hi)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}
+                title="停止生成"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <rect x="2" y="2" width="8" height="8" rx="1.5" fill="var(--text-2)"/>
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!canSend}
+                style={{
+                  width: '32px', height: '32px',
+                  background: canSend ? 'var(--accent-grad)' : 'var(--surface-hi)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: canSend ? 'pointer' : 'not-allowed',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v12M1 7l6-6 6 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 

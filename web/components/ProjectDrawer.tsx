@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import type { Project } from '@/types'
 
 interface ProjectDrawerProps {
@@ -8,6 +9,7 @@ interface ProjectDrawerProps {
   currentProjectId: string
   onSelect: (project: Project) => void
   onDelete: (projectId: string) => void
+  onRename: (projectId: string, name: string) => void
   onClose: () => void
 }
 
@@ -26,8 +28,29 @@ export default function ProjectDrawer({
   currentProjectId,
   onSelect,
   onDelete,
+  onRename,
   onClose,
 }: ProjectDrawerProps) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (editingId) inputRef.current?.focus()
+  }, [editingId])
+
+  function startEdit(p: Project, e: React.MouseEvent) {
+    e.stopPropagation()
+    setEditingId(p.id)
+    setEditingName(p.name)
+  }
+
+  function commitEdit(id: string) {
+    const trimmed = editingName.trim()
+    if (trimmed) onRename(id, trimmed)
+    setEditingId(null)
+  }
+
   if (!isOpen) return null
 
   return (
@@ -103,9 +126,39 @@ export default function ProjectDrawer({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '4px' }}>
-                    {p.name}
-                  </div>
+                  {editingId === p.id ? (
+                    <input
+                      ref={inputRef}
+                      value={editingName}
+                      onChange={e => setEditingName(e.target.value)}
+                      onBlur={() => commitEdit(p.id)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') commitEdit(p.id)
+                        if (e.key === 'Escape') setEditingId(null)
+                        e.stopPropagation()
+                      }}
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        flex: 1, marginRight: '8px',
+                        fontWeight: 600, fontSize: '13px',
+                        background: 'var(--surface)',
+                        border: '1px solid var(--accent)',
+                        borderRadius: '5px',
+                        color: 'var(--text)',
+                        padding: '2px 6px',
+                        fontFamily: 'var(--font-ui)',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      onDoubleClick={e => startEdit(p, e)}
+                      title="双击重命名"
+                      style={{ fontWeight: 600, fontSize: '13px', marginBottom: '4px', cursor: 'text', flex: 1 }}
+                    >
+                      {p.name}
+                    </div>
+                  )}
                   <button
                     onClick={e => { e.stopPropagation(); onDelete(p.id) }}
                     style={{

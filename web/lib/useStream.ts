@@ -88,7 +88,9 @@ export function useStream(opts: StreamOptions) {
     const controller = new AbortController()
     abortRef.current = controller
 
-    const apiMessages: ApiMessage[] = messagesRef.current.map(m => {
+    // Keep last 20 turns to stay within context limits
+    const recentMessages = messagesRef.current.slice(-20)
+    const apiMessages: ApiMessage[] = recentMessages.map(m => {
       // Build the full text content: user text + injected file contents
       let textContent = m.content
       if (m.files && m.files.length > 0) {

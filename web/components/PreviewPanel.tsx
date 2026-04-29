@@ -11,6 +11,7 @@ interface PreviewPanelProps {
 export default function PreviewPanel({ htmlContent, isGenerating, onDownload }: PreviewPanelProps) {
   const [zoom, setZoom] = useState(100)
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
+  const [tab, setTab] = useState<'preview' | 'code'>('preview')
 
   const mobileWidth = 390
 
@@ -33,9 +34,34 @@ export default function PreviewPanel({ htmlContent, isGenerating, onDownload }: 
         borderBottom: '1px solid var(--border)',
         flexShrink: 0,
       }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-3)', fontWeight: 600, letterSpacing: '0.5px' }}>
-          PREVIEW
-        </span>
+        {/* Tab toggle: Preview / Code */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--surface)',
+          borderRadius: '7px',
+          padding: '2px',
+          border: '1px solid var(--border)',
+        }}>
+          {(['preview', 'code'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                padding: '3px 10px',
+                borderRadius: '5px',
+                border: 'none',
+                background: tab === t ? 'var(--surface-hi)' : 'transparent',
+                color: tab === t ? 'var(--text)' : 'var(--text-3)',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontFamily: 'var(--font-ui)',
+                fontWeight: tab === t ? 600 : 400,
+              }}
+            >
+              {t === 'preview' ? '预览' : '源码'}
+            </button>
+          ))}
+        </div>
 
         <div style={{ flex: 1 }} />
 
@@ -164,11 +190,10 @@ export default function PreviewPanel({ htmlContent, isGenerating, onDownload }: 
           </div>
         )}
 
-        {htmlContent && (
+        {htmlContent && tab === 'preview' && (
           <div style={{
             width: viewMode === 'mobile' ? `${mobileWidth}px` : '100%',
             maxWidth: viewMode === 'mobile' ? `${mobileWidth}px` : 'none',
-            // Use zoom (not transform:scale) so pointer events stay correctly aligned
             zoom: zoom / 100,
             boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
             borderRadius: '8px',
@@ -179,7 +204,6 @@ export default function PreviewPanel({ htmlContent, isGenerating, onDownload }: 
               srcDoc={htmlContent}
               style={{
                 width: '100%',
-                // Tall enough to show most designs without internal scroll
                 height: viewMode === 'mobile' ? '844px' : '2400px',
                 border: 'none',
                 display: 'block',
@@ -187,6 +211,30 @@ export default function PreviewPanel({ htmlContent, isGenerating, onDownload }: 
               title="设计预览"
               sandbox="allow-scripts allow-same-origin"
             />
+          </div>
+        )}
+
+        {htmlContent && tab === 'code' && (
+          <div style={{
+            width: '100%',
+            maxHeight: '100%',
+            overflow: 'auto',
+            background: '#1e1e2e',
+            borderRadius: '8px',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+          }}>
+            <pre style={{
+              margin: 0,
+              padding: '20px',
+              fontSize: '12px',
+              lineHeight: '1.7',
+              color: '#cdd6f4',
+              fontFamily: 'ui-monospace, "Cascadia Code", "Fira Code", monospace',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
+            }}>
+              {htmlContent}
+            </pre>
           </div>
         )}
       </div>
