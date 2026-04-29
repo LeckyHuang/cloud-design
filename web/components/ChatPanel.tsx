@@ -20,6 +20,7 @@ interface ChatPanelProps {
   setInput: (v: string) => void
   onSend: (images: string[], files: FileAttachment[]) => void
   onStop?: () => void
+  onCardSelect?: (response: string) => void
   streamingContent?: string
 }
 
@@ -55,6 +56,7 @@ export default function ChatPanel({
   setInput,
   onSend,
   onStop,
+  onCardSelect,
   streamingContent,
 }: ChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -245,6 +247,7 @@ export default function ChatPanel({
             images={msg.images}
             files={msg.files}
             isStreaming={i === messages.length - 1 && msg.role === 'assistant' && isGenerating && !streamingContent}
+            onCardSelect={onCardSelect}
           />
         ))}
 

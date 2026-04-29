@@ -199,6 +199,12 @@ export default function HomePage() {
     setInputText('')
   }, [inputText, isLoading, sendMessage])
 
+  const handleCardSelect = useCallback((response: string) => {
+    if (isLoading) return
+    if (!apiKeyRef.current.trim()) { alert('请先输入 API Key'); return }
+    sendMessage(response, [], [])
+  }, [isLoading, sendMessage])
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)' }}>
       <TopBar
@@ -226,6 +232,7 @@ export default function HomePage() {
           setInput={setInputText}
           onSend={handleSend}
           onStop={stop}
+          onCardSelect={handleCardSelect}
           streamingContent={isLoading ? streamingText : undefined}
         />
         <PreviewPanel

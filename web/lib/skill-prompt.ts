@@ -1,10 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-let cachedPrompt: string | null = null
-
 export function getSystemPrompt(): string {
-  if (cachedPrompt) return cachedPrompt
 
   const promptsDir = path.join(process.cwd(), 'prompts')
 
@@ -13,7 +10,7 @@ export function getSystemPrompt(): string {
   const principles = fs.readFileSync(path.join(promptsDir, 'design-principles.md'), 'utf-8')
   const lessons = fs.readFileSync(path.join(promptsDir, 'lessons.md'), 'utf-8')
 
-  cachedPrompt = `${skill}
+  return `${skill}
 
 ---
 
@@ -56,11 +53,50 @@ ${lessons}
 ## 交互说明
 - 用户在左侧对话面板与你交互
 - 右侧面板实时预览 HTML 输出
-- 部分步骤会显示引导卡片（维度选择、检查清单等），用户点击卡片后会自动将选择注入对话
+
+## 引导卡片系统
+
+在合适的节点，你可以在回复末尾输出一个卡片标记，前端会将其渲染为可点击的交互卡片。用户点击后，选择结果会自动作为新消息发送。
+
+**格式**（必须在回复最末尾，单独一行）：
+\`\`\`
+[[CARD:{"type":"...","title":"...","options":[...]}]]
+\`\`\`
+
+**四种卡片类型及触发时机**：
+
+| type | 触发时机 | 关键字段 |
+|---|---|---|
+| \`platform\` | 明确需求后、开始设计前，若用户未说明目标平台 | \`options\`: ["Desktop","Mobile","响应式"] |
+| \`dimensions\` | 需要用户选择风格方向时（Step 1 阶段） | \`options\`: 5-8个风格选项 |
+| \`v0-confirm\` | 输出 v0 草稿后，等待用户确认生成完整版 | \`summary\`: 一句话描述即将生成的内容 |
+| \`checklist\` | 完整设计稿生成后，自检阶段（Step 6） | \`items\`: 检查项列表（5-8条） |
+
+**使用原则**：
+- 每条回复最多输出 **1 张卡片**
+- 卡片之后不要再跟文字
+- 信息已充足时（用户明确说了风格/平台）不要强制出卡片
+- 卡片是引导工具，不是阻碍工具——用户跳过直接输入也完全可以
+
+**示例**：
+\`\`\`
+好的，需求已清晰。在开始之前，请问目标平台是？
+
+[[CARD:{"type":"platform","title":"目标平台","options":["Desktop","Mobile","响应式"]}]]
+\`\`\`
+
+\`\`\`
+v0 草稿已输出。确认布局方向后，我将生成完整设计稿。
+
+[[CARD:{"type":"v0-confirm","title":"确认并生成完整版","summary":"Linear 风格项目管理落地页，深色主题，Desktop 优先，含 Hero、功能卡片、定价三个板块"}]]
+\`\`\`
+
+\`\`\`
+[[CARD:{"type":"checklist","title":"交付前自检","items":["配色对比度达标（正文≥4.5:1）","字体层级清晰（3级以内）","所有交互状态已覆盖（hover/active/disabled）","移动端断点正常","无硬编码颜色（全用 CSS 变量）","动效时长合理（≤300ms）"]}]]
+\`\`\`
 
 ## 今日日期
 ${new Date().toISOString().split('T')[0]}
 `
 
-  return cachedPrompt
 }

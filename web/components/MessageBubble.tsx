@@ -1,8 +1,9 @@
 'use client'
 
 import { marked, Renderer } from 'marked'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { FileAttachment } from '@/lib/useStream'
+import CardRenderer, { parseCard } from './cards/CardRenderer'
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant'
@@ -10,6 +11,7 @@ interface MessageBubbleProps {
   images?: string[]
   files?: FileAttachment[]
   isStreaming?: boolean
+  onCardSelect?: (response: string) => void
 }
 
 function fileIcon(name: string) {
@@ -31,13 +33,24 @@ renderer.table = function (token) {
 }
 marked.use({ renderer, breaks: true })
 
-export default function MessageBubble({ role, content, images, files, isStreaming }: MessageBubbleProps) {
+export default function MessageBubble({ role, content, images, files, isStreaming, onCardSelect }: MessageBubbleProps) {
   const isUser = role === 'user'
+  const [cardUsed, setCardUsed] = useState(false)
+
+  const { text: displayContent, card } = useMemo(() => {
+    if (isUser || isStreaming) return { text: content, card: null }
+    return parseCard(content)
+  }, [content, isUser, isStreaming])
 
   const html = useMemo(() => {
     if (isUser) return null
-    return marked.parse(content) as string
-  }, [content, isUser])
+    return marked.parse(displayContent) as string
+  }, [displayContent, isUser])
+
+  function handleCardSelect(response: string) {
+    setCardUsed(true)
+    onCardSelect?.(response)
+  }
 
   return (
     <div style={{
@@ -128,10 +141,25 @@ export default function MessageBubble({ role, content, images, files, isStreamin
             )}
           </>
         ) : (
-          <div
-            className="md-body"
-            dangerouslySetInnerHTML={{ __html: html || '' }}
-          />
+          <>
+            <div
+              className="md-body"
+              dangerouslySetInnerHTML={{ __html: html || '' }}
+            />
+            {card && !cardUsed && (
+              <CardRenderer card={card} onSelect={handleCardSelect} />
+            )}
+            {card && cardUsed && (
+              <div style={{
+                marginTop: '10px',
+                fontSize: '11px',
+                color: 'var(--text-3)',
+                fontStyle: 'italic',
+              }}>
+                已选择
+              </div>
+            )}
+          </>
         )}
         {isStreaming && (
           <span style={{

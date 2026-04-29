@@ -11,7 +11,10 @@ export interface Message {
 
 export interface CardData {
   type: 'dimensions' | 'platform' | 'checklist' | 'v0-confirm'
-  payload?: Record<string, unknown>
+  title?: string
+  options?: string[]
+  items?: string[]
+  summary?: string
 }
 
 export interface Project {
