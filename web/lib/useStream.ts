@@ -90,13 +90,17 @@ export function useStream(opts: StreamOptions) {
 
     // Keep last 20 turns to stay within context limits
     const recentMessages = messagesRef.current.slice(-20)
+    const MAX_FILE_CHARS = 80_000 // ~20K tokens per file, hard cap
     const apiMessages: ApiMessage[] = recentMessages.map(m => {
       // Build the full text content: user text + injected file contents
       let textContent = m.content
       if (m.files && m.files.length > 0) {
-        const fileParts = m.files.map(f =>
-          `\n\n---\n📄 **${f.name}**\n\`\`\`${f.lang}\n${f.content}\n\`\`\``
-        )
+        const fileParts = m.files.map(f => {
+          const body = f.content.length > MAX_FILE_CHARS
+            ? f.content.slice(0, MAX_FILE_CHARS) + `\n\n…[文件过大，已截断，原始大小 ${(f.content.length / 1024).toFixed(0)} KB]`
+            : f.content
+          return `\n\n---\n📄 **${f.name}**\n\`\`\`${f.lang}\n${body}\n\`\`\``
+        })
         textContent = (m.content ? m.content + '\n' : '') + fileParts.join('')
       }
 
@@ -140,14 +144,23 @@ export function useStream(opts: StreamOptions) {
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
       let accumulated = ''
+      let rafId: number | null = null
+
+      const flushToState = () => {
+        setStreamingText(accumulated)
+        rafId = null
+      }
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
         const chunk = decoder.decode(value, { stream: true })
         accumulated += chunk
-        setStreamingText(accumulated)
+        if (!rafId) rafId = requestAnimationFrame(flushToState)
       }
+
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+      setStreamingText(accumulated)
 
       const assistantMsg: ChatMessage = { id: uid(), role: 'assistant', content: accumulated }
       messagesRef.current = [...messagesRef.current, assistantMsg]

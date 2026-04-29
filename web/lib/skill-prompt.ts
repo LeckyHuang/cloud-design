@@ -1,7 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 
+let _cached: string | null = null
+
 export function getSystemPrompt(): string {
+  if (_cached) return _cached
 
   const promptsDir = path.join(process.cwd(), 'prompts')
 
@@ -10,7 +13,7 @@ export function getSystemPrompt(): string {
   const principles = fs.readFileSync(path.join(promptsDir, 'design-principles.md'), 'utf-8')
   const lessons = fs.readFileSync(path.join(promptsDir, 'lessons.md'), 'utf-8')
 
-  return `${skill}
+  _cached = `${skill}
 
 ---
 
@@ -99,4 +102,5 @@ v0 草稿已输出。确认布局方向后，我将生成完整设计稿。
 ${new Date().toISOString().split('T')[0]}
 `
 
+  return _cached
 }

@@ -66,7 +66,7 @@ export default function ChatPanel({
   const [pendingFiles, setPendingFiles] = useState<FileAttachment[]>([])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: streamingContent ? 'instant' : 'smooth' })
   }, [messages, streamingContent])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -97,7 +97,12 @@ export default function ChatPanel({
   }, [])
 
   const addTextFiles = useCallback((files: File[]) => {
+    const MAX_FILE_BYTES = 200 * 1024 // 200 KB
     files.forEach(file => {
+      if (file.size > MAX_FILE_BYTES) {
+        alert(`文件「${file.name}」太大（${(file.size / 1024).toFixed(0)} KB），请上传 200 KB 以内的文件。`)
+        return
+      }
       const reader = new FileReader()
       reader.onload = e => {
         const content = e.target?.result as string
